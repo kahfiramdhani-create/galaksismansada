@@ -6,7 +6,7 @@ const FX=()=>ls.get('gx-fx')!=='0';
 let ME=null,items=[],db=null,filt='',shown=[],queue=[],cur=null,curURL=null;
 const API='https://galaksi-server.kahfiramdhani3.workers.dev/api'; // alamat server, TANPA "/" di akhir
 const tk=()=>ls.get('gx-tk');
-async function api(p,o={}){const h={...(o.headers||{})};if(tk())h.Authorization='Bearer '+tk();try{const r=await fetch(API+p,{...o,headers:h});return o.raw?r:await r.json()}catch(e){return{ok:false,error:'Tidak dapat terhubung ke server.'}}}
+async function api(p,o={}){const h={...(o.headers||{})};if(tk())h.Authorization='Bearer '+tk();const c=new AbortController(),t=setTimeout(()=>c.abort(),15000);try{const r=await fetch(API+p,{...o,headers:h,signal:c.signal});return o.raw?r:await r.json()}catch(e){return{ok:false,error:'Tidak dapat terhubung ke server.'}}finally{clearTimeout(t)}}
 const post=(p,d)=>api(p,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)});
 const shrink=(f,m=1600)=>new Promise(res=>{const u=URL.createObjectURL(f),im=new Image();im.onload=()=>{const k=Math.min(1,m/Math.max(im.naturalWidth,im.naturalHeight)),c=document.createElement('canvas');c.width=im.naturalWidth*k;c.height=im.naturalHeight*k;c.getContext('2d').drawImage(im,0,0,c.width,c.height);URL.revokeObjectURL(u);c.toBlob(b=>res(b||f),'image/jpeg',.85)};im.onerror=()=>{URL.revokeObjectURL(u);res(f)};im.src=u});
 const me=()=>ME,ok=u=>u&&u.status==='verified';
@@ -168,4 +168,4 @@ $('#save').onclick=async()=>{const b=$('#save');b.disabled=true;let n=0,dup=0,ba
   window.fxApply=()=>{cancelAnimationFrame(raf);cv.style.display=FX()?'':'none';if(FX()&&!RM)raf=requestAnimationFrame(tick)};fxApply();
 })();
 
-(async()=>{if(tk()){const r=await api('/me');if(r.ok)ME=r.user;else if(!/terhubung/.test(r.error||''))ls.del('gx-tk');else toast(r.error)}go(me()?'galeri':'intro')})();
+(async()=>{go('intro');if(tk()){const r=await api('/me');if(r.ok)ME=r.user;else if(!/terhubung/.test(r.error||''))ls.del('gx-tk');else toast(r.error)}go(me()?'galeri':'intro')})();
